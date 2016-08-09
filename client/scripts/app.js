@@ -11,10 +11,16 @@ var Message = function (message) {
   } else if ( message.text.length > 100 ) {
     message.text = message.text.slice( 0, 100 );
   }
+  message.text = htmlEncode( message.text );
+  message.username = htmlEncode( message.username );
   result += '<div class="username">' + message.username + '</div>';
   result += '<div class="text">' + message.text + '</div>';
   result += '<div class="roomname">' + message.roomname + '</div>';
-  var chat = '<div class="chat">' + result + '</div>';
+  if ( app.friends.indexOf( message.username ) !== -1 ) {
+    var chat = '<div class="chat friends">' + result + '</div>';  
+  } else {
+    var chat = '<div class="chat">' + result + '</div>';
+  }
   return chat;
 };
 
@@ -23,6 +29,7 @@ var app = {};
 app.server = 'https://api.parse.com/1/classes/messages';
 
 app.init = function () {
+  app.friends = [];
   app.room = 'Lobby';
   window.rooms.push(app.room);
 };
@@ -85,6 +92,7 @@ app.addMessage = function ( object ) {
 
 // needs work
 app.addRoom = function (room) {
+  room = htmlEncode( room );
   var roomName = '<option value="' + room + '">' + room + '</option>';
   $('#roomSelect').append(roomName);
 };
@@ -96,7 +104,9 @@ app.selectRoom = function () {
 
 // needs work
 app.addFriend = function ( string ) {
-
+  if ( app.friends.indexOf( string ) === -1 ) {
+    app.friends.push( string ); 
+  }
 };
 
 // calls app.send
@@ -123,7 +133,8 @@ $(document).ready( function () {
 
   $('body').on('click', '.submit', function () {
     if ( $('#message-box').val().length === 0 ) { return; }
-    var text = htmlEncode( $('#message-box').val());
+    // var text = htmlEncode( $('#message-box').val());
+    var text = $('#message-box').val();
     $('#message-box').val('');
     app.handleSubmit(text);
     //need to update roomname
@@ -132,11 +143,17 @@ $(document).ready( function () {
   $('body').on('keypress', function (e) {
     if (e.keyCode === 13) {
       e.preventDefault();
-      var text = htmlEncode( $('#message-box').val());
+      // var text = htmlEncode( $('#message-box').val());
+      var text = $('#message-box').val();
       $('#message-box').val('');
       app.handleSubmit(text);
       //need to update roomname
     }
+  });
+
+  $('#chats').on('click', '.username', function(e) {
+    e.preventDefault();
+    app.addFriend( $(this).text() );
   });
 
   // calls app.fetch every second
