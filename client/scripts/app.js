@@ -74,13 +74,21 @@ app.addRoom = function (room) {
   $('#roomSelect').append(roomName);
 };
 
-app.addFriend = function (  ) {
+app.addFriend = function ( string ) {
+
+};
+
+app.handleSubmit = function () {
 
 };
 
 $(document).ready( function () {
   $('body').on('click', '.username', function () {
     app.addFriend( $(this).text());
+  });
+
+  $('.submit').on('submit', function () {
+    app.handleSubmit();
   });
 });
 
