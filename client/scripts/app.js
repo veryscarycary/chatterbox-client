@@ -124,11 +124,26 @@ $(document).ready( function () {
   });
 
   $('body').on('click', '.submit', function () {
+    if ( $('#message-box').val().length === 0 ) { return; }
     var text = $('#message-box').val();
     $('#message-box').val('');
     console.log('hit');
     app.handleSubmit(text);
     //need to update roomname
   });
+
+  $('body').on('keypress', function (e) {
+    if (e.keyCode === 13) {
+      e.preventDefault();
+      var text = $('#message-box').val();
+      $('#message-box').val('');
+      console.log('hit');
+      app.handleSubmit(text);
+      //need to update roomname
+    }
+  });
 });
+
+
+
 
