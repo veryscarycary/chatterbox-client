@@ -105,7 +105,6 @@ describe('chatterbox', function() {
         });
 
         app.init();
-
         $('#main').find('.username').trigger('click');
         expect(app.addFriend.called).to.be.true;
 

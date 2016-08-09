@@ -15,13 +15,12 @@
 //     console.error('chatterbox: Failed to send message', data);
 //   }
 // });
-
 var Message = function (message) {
   var result = '';
-  result += '<div class="username">' + message.userName + '</div>';
+  result += '<div class="username">' + message.username + '</div>';
   result += '<div class="text">' + message.text + '</div>';
-  result += '<div class="roomName">' + message.roomName + '</div>';
-  result += '<div class="createdAt">' + message.createdAt + '</div>';
+  result += '<div class="roomname">' + message.roomname + '</div>';
+  // result += '<div class="createdAt">' + message.createdAt + '</div>';
   var chat = '<div class="chat">' + result + '</div>';
   return chat;
 };
@@ -30,7 +29,9 @@ var app = {};
 
 app.server = 'https://api.parse.com/1/classes/messages';
 
-app.init = function () {};
+app.init = function () {
+
+};
 
 app.send = function (message) {
   $.ajax({
@@ -55,8 +56,6 @@ app.fetch = function () {
     url: 'https://api.parse.com/1/classes/messages',
     type: 'GET'
   });
-
-  console.dir(message);
 };
 
 app.clearMessages = function () {
@@ -64,17 +63,24 @@ app.clearMessages = function () {
 };
 
 app.addMessage = function ( object ) {
+  // debugger;
   // var message = '<div class='message'> message.text';
   var message = Message( object );
   $('#chats').append(message);
 };
 
-app.addRoom = function (roomName) {
-  var roomName = '<div>' + roomName + '</div>';
+app.addRoom = function (room) {
+  var roomName = '<div>' + room + '</div>';
   $('#roomSelect').append(roomName);
 };
 
-
-app.addFriend = function ( object ) {
+app.addFriend = function (  ) {
 
 };
+
+$(document).ready( function () {
+  $('body').on('click', '.username', function () {
+    app.addFriend( $(this).text());
+  });
+});
+
