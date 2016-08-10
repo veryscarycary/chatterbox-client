@@ -13,23 +13,26 @@ var Message = function (message) {
   }
   message.text = htmlEncode( message.text );
   message.username = htmlEncode( message.username );
-  result += '<div class="username">' + message.username + '</div>';
-  result += '<div class="text">' + message.text + '</div>';
-  result += '<div class="roomname">' + message.roomname + '</div>';
-  if ( app.friends.indexOf( message.username ) !== -1 ) {
-    var chat = '<div class="chat friends">' + result + '</div>';  
+  if ( app.friends[message.username] === true ) {
+    result += '<div class="username friends" data-username="' + message.username + '">' + message.username + '</div>';
   } else {
-    var chat = '<div class="chat">' + result + '</div>';
+    result += '<div class="username" data-username="' + message.username + '">' + message.username + '</div>';
   }
+  result += '<div class="text">' + message.text + '</div>';
+  result += '<div class="roomname">Chatroom: ' + message.roomname + '</div>';
+  result += '<div class="time">' + $.timeago(message.createdAt) + '</div>';
+  var chat = '<div class="chat">' + result + '</div>';
   return chat;
 };
 
 var app = {};
 
+app.lastMessage = 0;
+
 app.server = 'https://api.parse.com/1/classes/messages';
 
 app.init = function () {
-  app.friends = [];
+  app.friends = {};
   app.room = 'Lobby';
   window.rooms.push(app.room);
 };
@@ -57,16 +60,19 @@ app.fetch = function () {
     type: 'GET',
     data: 'json',
     success: function(data) {
-      app.clearMessages();
-      for ( var i = 99; i >= 0; i-- ) {
-        app.addMessage( data.results[i] );
+      if ( app.lastMessage !== data.results[0].objectId ) {
+        app.clearMessages();
+        app.lastMessage = data.results[0].objectId;
+        for ( var i = 99; i >= 0; i-- ) {
+          app.addMessage( data.results[i] );
 
-        var roomname = data.results[i].roomname;
-        // if roomname isn't in rooms array
-        if (window.rooms.indexOf(roomname) === -1) {
-          // add roomname to rooms array
-          window.rooms.push(roomname);
-          app.addRoom(roomname);
+          var roomname = data.results[i].roomname;
+          // if roomname isn't in rooms array
+          if (window.rooms.indexOf(roomname) === -1) {
+            // add roomname to rooms array
+            window.rooms.push(roomname);
+            app.addRoom(roomname);
+          }
         }
       }
     }
@@ -98,14 +104,18 @@ app.addRoom = function (room) {
 };
 
 
-app.selectRoom = function () {
+app.selectRoom = function (room) {
+  if ( room ) {
+    app.room = room;
+    $('#roomSelect').val(room);
+  }
   app.room = $('#roomSelect :selected').text();
 }; 
 
 // needs work
-app.addFriend = function ( string ) {
-  if ( app.friends.indexOf( string ) === -1 ) {
-    app.friends.push( string ); 
+app.addFriend = function ( username ) {
+  if ( username !== undefined ) {
+    app.friends[username] = !app.friends[username];
   }
 };
 
@@ -117,6 +127,9 @@ app.handleSubmit = function (text) {
 
 // html-encodes inputs from users
 var htmlEncode = function ( value ) {
+  if ( value === undefined || value === null) {
+    value = ' ';
+  }
   if ( value.length > 100 ) {
     value = value.slice( 0, 100 );
   }
@@ -128,7 +141,11 @@ $(document).ready( function () {
   app.init();
 
   $('body').on('click', '.username', function () {
-    app.addFriend( $(this).text());
+    // debugger;
+    var username = $(this).text();
+    console.log(username);
+    $('[data-username="' + username + '"]').toggleClass('friends');
+    app.addFriend( username );
   });
 
   $('body').on('click', '.submit', function () {
@@ -151,9 +168,18 @@ $(document).ready( function () {
     }
   });
 
-  $('#chats').on('click', '.username', function(e) {
-    e.preventDefault();
-    app.addFriend( $(this).text() );
+  $('#roomSelect').on('change', function(e) {
+    e.stopPropagation();
+    var val = $('#roomSelect').prop('selectedIndex');
+    if ( val === 1) {
+      var room = prompt('Enter a new chat room name');
+
+      if (window.rooms.indexOf(room) === -1) {
+        window.rooms.push(room);
+        app.addRoom(room);
+      }
+    }
+    app.selectRoom( room );
   });
 
   // calls app.fetch every second
